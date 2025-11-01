@@ -1,0 +1,5 @@
+{
+  "name": "IDP Mentorship Platform",
+  "description": "A web application to facilitate the Individual Development Plan (IDP) mentorship process, featuring maturity assessment, activity tracking, and AI-powered suggestions for mentors.",
+  "requestFramePermissions": []
+}
