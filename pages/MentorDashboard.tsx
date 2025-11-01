@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { User, MenteeProfile, DevelopmentActivity, AIGeneratedSuggestion, MaturityLevelInfo } from '../types';
 import { MATURITY_LEVELS, SURVEY_QUESTIONS, MATURITY_TIPS } from '../constants';
-import { generateActivitySuggestions } from '../services/geminiService';
 import MentorAssessmentForm from '../components/MentorAssessmentForm';
 import ComparisonModal from '../components/ComparisonModal';
 import Spinner from '../components/Spinner';
@@ -21,7 +20,6 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
     const [selectedMentee, setSelectedMentee] = useState<MenteeProfile | null>(null);
     const [isAssessing, setIsAssessing] = useState(false);
     const [isComparing, setIsComparing] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
     const [editingActivity, setEditingActivity] = useState<Partial<DevelopmentActivity> | null>(null);
     const [isAddingMentee, setIsAddingMentee] = useState(false);
     const [assessmentResult, setAssessmentResult] = useState<{ answers: number[]; calculatedLevel: MaturityLevelInfo; } | null>(null);
@@ -62,34 +60,27 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
         setSelectedMentee(prev => prev ? updateMentee(prev) : null);
         setAssessmentResult(null);
     };
-
-    const handleGenerateAISuggestions = async () => {
-        if (!selectedMentee?.maturityLevel) return;
-        setIsGenerating(true);
-        try {
-            const suggestions = await generateActivitySuggestions(selectedMentee.maturityLevel);
-            if (suggestions.length > 0) {
-                const newActivities: DevelopmentActivity[] = suggestions.map((s, i) => ({
-                    id: `ai-${Date.now()}-${i}`,
-                    ...s,
-                    dueDate: '',
-                    status: 'draft',
-                    isAI: true,
-                }));
-
-                const updateMentee = (m: MenteeProfile) => m.id === selectedMentee.id ? { ...m, developmentPlan: [...m.developmentPlan, ...newActivities] } : m;
-
-                setMentees(prev => prev.map(updateMentee));
-                setSelectedMentee(prev => prev ? updateMentee(prev) : null);
-            }
-        } finally {
-            setIsGenerating(false);
-        }
-    };
     
     const handleActivityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         if (!editingActivity) return;
         setEditingActivity({ ...editingActivity, [e.target.name]: e.target.value });
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!editingActivity) return;
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setEditingActivity({
+                ...editingActivity,
+                pdfAttachment: { name: file.name, url: '#' }, // Using '#' as a placeholder
+            });
+        }
+    };
+
+    const handleRemoveAttachment = () => {
+        if (!editingActivity) return;
+        const { pdfAttachment, ...rest } = editingActivity;
+        setEditingActivity(rest);
     };
 
     const handleSaveActivity = () => {
@@ -116,7 +107,8 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                 description: editingActivity.description || '',
                 steps: processedSteps,
                 dueDate: editingActivity.dueDate || '',
-                status: 'draft',
+                status: editingActivity.status || 'draft',
+                pdfAttachment: editingActivity.pdfAttachment,
             };
             updatedPlan = [...plan, newActivity];
         }
@@ -162,6 +154,11 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                                     <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-gray-600">
                                         {activity.steps.map((step, index) => <li key={index}>{step}</li>)}
                                     </ul>
+                                     {activity.pdfAttachment && (
+                                        <a href={activity.pdfAttachment.url} download={activity.pdfAttachment.name} className="mt-2 inline-block text-blue-600 hover:underline text-sm font-semibold">
+                                            Baixar Anexo: {activity.pdfAttachment.name}
+                                        </a>
+                                    )}
                                 </div>
                                 <span className={`px-3 py-1 text-sm font-semibold rounded-full capitalize ${
                                     {'draft': 'bg-gray-100 text-gray-800', 'assigned': 'bg-blue-100 text-blue-800', 'in_progress': 'bg-yellow-100 text-yellow-800', 'completed': 'bg-green-100 text-green-800'}[activity.status]
@@ -185,6 +182,16 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                             <textarea name="description" value={editingActivity.description || ''} onChange={handleActivityChange} placeholder="Descrição" className="w-full p-2 border rounded"/>
                             <textarea name="steps" value={(Array.isArray(editingActivity.steps) ? editingActivity.steps.join('\n') : editingActivity.steps as any) || ''} onChange={handleActivityChange} placeholder="Passos (um por linha)" className="w-full p-2 border rounded"/>
                             <input name="dueDate" type="date" value={editingActivity.dueDate ? editingActivity.dueDate.split('T')[0] : ''} onChange={handleActivityChange} className="w-full p-2 border rounded"/>
+                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Anexo PDF (Opcional)</label>
+                                <input type="file" name="pdfAttachment" accept=".pdf" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                                {editingActivity.pdfAttachment && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <p className="text-xs text-gray-500">Anexo atual: {editingActivity.pdfAttachment.name}</p>
+                                        <button type="button" onClick={handleRemoveAttachment} className="text-xs text-red-500 hover:underline">Remover</button>
+                                    </div>
+                                )}
+                            </div>
                              <select name="status" value={editingActivity.status || 'draft'} onChange={handleActivityChange} className="w-full p-2 border rounded">
                                 <option value="draft">Rascunho</option>
                                 <option value="assigned">Atribuída</option>
@@ -205,7 +212,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
     };
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             {isAssessing && selectedMentee && <MentorAssessmentForm mentee={selectedMentee} onSubmit={handleAssessmentSubmit} onClose={() => setIsAssessing(false)} />}
             {assessmentResult && <MaturityConfirmationModal calculatedLevel={assessmentResult.calculatedLevel} onConfirm={handleConfirmMaturity} onClose={() => setAssessmentResult(null)}/>}
             {isComparing && selectedMentee && <ComparisonModal mentee={selectedMentee} onClose={() => setIsComparing(false)} />}
@@ -217,7 +224,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                 />
             )}
 
-            <aside className="w-1/4 bg-white border-r overflow-y-auto flex flex-col">
+            <aside className="w-full md:w-1/4 bg-white border-r flex flex-col flex-shrink-0">
                 <div className="p-4 border-b">
                     <h2 className="text-xl font-bold text-gray-800">Painel do Mentor</h2>
                     <p className="text-sm text-gray-600">Bem-vindo(a), {mentor.name}!</p>
@@ -248,7 +255,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                 </div>
             </aside>
 
-            <main className="w-3/4 p-8 overflow-y-auto">
+            <main className="w-full md:w-3/4 p-4 md:p-8 overflow-y-auto">
                 {selectedMentee ? (
                     <div>
                         <div className="flex flex-wrap justify-between items-center gap-4">
@@ -280,16 +287,6 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                                 </ul>
                             </div>
                         )}
-
-                        <div className="mt-6 border-t pt-6">
-                            <button 
-                                onClick={handleGenerateAISuggestions} 
-                                disabled={!selectedMentee.maturityLevel || isGenerating}
-                                className="flex items-center gap-2 px-5 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {isGenerating ? <><Spinner /> Gerando...</> : 'Gerar Sugestões de Atividades com IA'}
-                            </button>
-                        </div>
 
                         {renderDevelopmentPlan()}
 

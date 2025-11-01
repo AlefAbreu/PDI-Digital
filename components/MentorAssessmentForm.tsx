@@ -47,7 +47,7 @@ const MentorAssessmentForm: React.FC<MentorAssessmentFormProps> = ({ mentee, onS
                 <p className="font-semibold text-lg text-gray-800">{index + 1}. {q.text}</p>
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {options.map(option => (
-                    <label key={option.value} className={`flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${answers[index] === option.value ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white hover:bg-blue-50 border'}`}>
+                    <label key={option.value} className={`flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${answers[index] === option.value ? 'bg-blue-600 text-white shadow-lg' : 'bg-white hover:bg-blue-50 border'}`}>
                       <input
                         type="radio"
                         name={`question-${q.id}`}
