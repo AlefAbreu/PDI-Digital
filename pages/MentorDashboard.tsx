@@ -183,7 +183,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                         <div className="space-y-3">
                             <input name="title" value={editingActivity.title || ''} onChange={handleActivityChange} placeholder="Título" className="w-full p-2 border rounded"/>
                             <textarea name="description" value={editingActivity.description || ''} onChange={handleActivityChange} placeholder="Descrição" className="w-full p-2 border rounded"/>
-                            <textarea name="steps" value={Array.isArray(editingActivity.steps) ? editingActivity.steps.join('\n') : ''} onChange={handleActivityChange} placeholder="Passos (um por linha)" className="w-full p-2 border rounded"/>
+                            <textarea name="steps" value={(Array.isArray(editingActivity.steps) ? editingActivity.steps.join('\n') : editingActivity.steps as any) || ''} onChange={handleActivityChange} placeholder="Passos (um por linha)" className="w-full p-2 border rounded"/>
                             <input name="dueDate" type="date" value={editingActivity.dueDate ? editingActivity.dueDate.split('T')[0] : ''} onChange={handleActivityChange} className="w-full p-2 border rounded"/>
                              <select name="status" value={editingActivity.status || 'draft'} onChange={handleActivityChange} className="w-full p-2 border rounded">
                                 <option value="draft">Rascunho</option>
