@@ -39,7 +39,7 @@ const MentorAssessmentForm: React.FC<MentorAssessmentFormProps> = ({ mentee, onS
         <div className="p-8">
           <h1 className="text-3xl font-bold text-gray-900">Avaliação de Nivelamento</h1>
           <p className="mt-2 text-gray-600">
-            Avaliando: <span className="font-semibold">{mentee.name}</span>. Responda às perguntas abaixo com base na sua percepção sobre o orientado.
+            Avaliando: <span className="font-semibold">{mentee.name} ({mentee.registrationNumber})</span>. Responda às perguntas abaixo com base na sua percepção sobre o orientado.
           </p>
           <form onSubmit={handleSubmit} className="mt-8 space-y-8">
             {SURVEY_QUESTIONS.map((q, index) => (

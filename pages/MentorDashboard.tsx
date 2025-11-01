@@ -237,7 +237,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                         {mentees.map(mentee => (
                             <li key={mentee.id}>
                                 <button onClick={() => handleSelectMentee(mentee)} className={`w-full text-left px-3 py-2 my-1 rounded-md text-sm font-medium ${selectedMentee?.id === mentee.id ? 'bg-blue-100 text-blue-800' : 'text-gray-700 hover:bg-gray-100'}`}>
-                                    {mentee.name}
+                                    {mentee.name} ({mentee.registrationNumber})
                                 </button>
                             </li>
                         ))}
@@ -252,7 +252,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ mentor, mentees, allR
                 {selectedMentee ? (
                     <div>
                         <div className="flex flex-wrap justify-between items-center gap-4">
-                            <h2 className="text-3xl font-bold text-gray-900">{selectedMentee.name}</h2>
+                            <h2 className="text-3xl font-bold text-gray-900">{selectedMentee.name} ({selectedMentee.registrationNumber})</h2>
                              <div className="flex gap-2">
                                 {selectedMentee.surveyAnswers && <button onClick={() => setIsComparing(true)} className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200">Comparar Avaliações</button>}
                                 <button onClick={() => setIsAssessing(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">

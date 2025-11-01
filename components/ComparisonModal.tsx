@@ -30,7 +30,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({ mentee, onClose }) =>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="p-6 border-b">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">Comparativo de Avaliações: {mentee.name}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Comparativo de Avaliações: {mentee.name} ({mentee.registrationNumber})</h2>
                 <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
             </div>
         </div>
